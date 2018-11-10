@@ -1,5 +1,4 @@
 import config
-import socket as sck
 
 class Client:
     def __init__(self, socket, destination):
