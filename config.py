@@ -2,7 +2,11 @@ import socket as sck
 
 FOLDER_USERS = "./users/"
 
-SOCKET_INFO = sck.socket(sck.AF_INET, sck.SOCK_STREAM)
+IPV4 = sck.AF_INET
+
+TCP = sck.SOCK_STREAM
+
+SOCKET_INFO = sck.socket(IPV4, TCP)
 
 # Endereco IP do Servidor
 HOST = '127.0.0.1'

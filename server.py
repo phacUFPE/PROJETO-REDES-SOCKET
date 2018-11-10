@@ -1,5 +1,6 @@
+import config as cfg
 import serverFunctions as sf
 
-sf.openConnection()
-sf.establishConnection()
-
+svr = sf.Server(cfg.SOCKET_INFO, cfg.ORIGIN)
+svr.prepareConnection()
+svr.openConnection()
