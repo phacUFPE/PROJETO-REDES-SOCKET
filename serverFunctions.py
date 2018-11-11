@@ -2,6 +2,7 @@ import config
 from threading import Thread
 import _thread as thrd
 import os
+from databaseFunctions import dataBase
 
 class Server:
     def __init__(self, socket, origin):
@@ -13,8 +14,14 @@ class Server:
         self.sck.listen(1)    
 
     def authentication(self, user, password):
-        if not os.path.exists(config.FOLDER_USERS + user):
-            os.mkdir(config.FOLDER_USERS + user)    
+        db = dataBase()
+        dataBase = db.openDB()
+        for authentication in dataBase:
+            if authentication[0] == user and authentication[1] == password:
+                #ABRIR A PASTA DO USUÁRIO E ENVIA MENSAGEM DE CONFIRMAÇÃO DO LOGIN DO USUÁRIO
+            else:
+                os.mkdir("./" + str(user))
+                #MENSAGEM DE BOAS VINDAS    
 
     def h_client(self, c_sck, addr):
         while True:
