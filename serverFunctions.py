@@ -16,7 +16,7 @@ class Server:
         self.__db = Database()    
 
     def __del__(self):
-        self.__db.__del__()
+        del self.__db
         del self.__ip
         del self.__port
         del self.__sck
@@ -24,7 +24,7 @@ class Server:
         del self.__cliConnecteds
         gc.collect()
 
-    def prepareConnection(self):        
+    def prepareConnection(self):    
         self.__sck.bind(self.__orig)
         self.__sck.listen(1)
 
@@ -37,7 +37,7 @@ class Server:
     def authentication(self, addr, user, password):
         user = str(user)
         aut = self.__db.searchForUser(user)
-        if not aut: print("Usuario não existe!") return
+        if aut is None: return
         if aut[1] == user and aut[2] == password:
             if not self.checkDirExist(user): self.createUserDir(user)
             self.__cliConnecteds[addr] = self.__usersFolder + user

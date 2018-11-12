@@ -9,7 +9,7 @@ class Database:
         self.openConn()
 
     def __del__(self):
-        self.__con.close()
+        self.closeConn()
         del self.__path
         del self.__cursor
         del self.__con        

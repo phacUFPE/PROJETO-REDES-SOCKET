@@ -2,9 +2,9 @@ import config as cfg
 import gc
 
 class Client:
-    def __init__(self, ip=cfg.HOST):
+    def __init__(self, ip=cfg.HOST, port=cfg.PORT):
         self.__sck = cfg.SOCKET_INFO
-        self.__dest = ip
+        self.__dest = (ip, port)
 
     def __del__(self):
         del self.__sck

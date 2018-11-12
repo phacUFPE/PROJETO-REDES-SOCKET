@@ -1,17 +1,22 @@
 import socket as sck
 
+#PASTA PADRÃO DE TODOS USUARIOS
 FOLDER_USERS = "./users/"
 
-IPV4 = sck.AF_INET
-
-TCP = sck.SOCK_STREAM
-
-SOCKET_INFO = sck.socket(IPV4, TCP)
-
-# Endereco IP do Servidor
+#IP DO SERVIDOR
 HOST = '127.0.0.1'
 
-# Porta do Servidor esta
+#PORTA DO SERVIDOR
 PORT = 19120
 
+#TUPLA ORIGEM, DESTINO
 ORIGIN = DESTINATION = (HOST, PORT)
+
+#IPV4
+IPV4 = sck.AF_INET
+
+#TCP
+TCP = sck.SOCK_STREAM
+
+#SOCKET
+SOCKET_INFO = sck.socket(IPV4, TCP)

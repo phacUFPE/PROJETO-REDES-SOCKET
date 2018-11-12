@@ -1,6 +1,6 @@
 import config as cfg
-import clientFunctions import Client
+from clientFunctions import Client
 
-cli = Client(cfg.SOCKET_INFO, cfg.DESTINATION)
+cli = Client()
 
 cli.connectToServer()
