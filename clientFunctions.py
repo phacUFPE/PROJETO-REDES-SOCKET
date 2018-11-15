@@ -13,15 +13,17 @@ class Client:
 
     def connectToServer(self):
         try:
-            self.__sck.connect(self.__dest)
+            self.__sck.connect(self.__dest)            
         except ConnectionRefusedError:
             print("Servidor offline!")
             return            
         print("Para sair use o  comando 'EXIT'\n")
+        self.__sck.send("sucessfully!".encode())
+        print(self.__sck.recv(1024).decode())
         try:
             msg = input()
             while msg != "EXIT":
-                self.__sck.send(msg.encode())        
+                self.__sck.send(msg.encode())
                 msg = input()
             if msg == "EXIT":
                 self.__sck.send(msg.encode())

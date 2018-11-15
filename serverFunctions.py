@@ -12,8 +12,7 @@ class Server:
         self.__sck = cfg.SOCKET_INFO
         self.__orig = (ip, port)
         self.__cliConnecteds = {}
-        self.__usersFolder = cfg.FOLDER_USERS
-        self.__db = Database()    
+        self.__usersFolder = cfg.FOLDER_USERS   
 
     def __del__(self):
         del self.__db
@@ -32,25 +31,36 @@ class Server:
         return os.path.isdir(self.__usersFolder + str(user))
     
     def createUserDir(self, user):
+        if not os.path.isdir(self.__usersFolder): os.mkdir(self.__usersFolder)        
         os.mkdir(self.__usersFolder + str(user))
 
-    def authentication(self, addr, user, password):
+    def authentication(self, c_sck, addr, user, password):
         user = str(user)
-        aut = self.__db.searchForUser(user)
-        if aut is None: return
-        if aut[1] == user and aut[2] == password:
-            if not self.checkDirExist(user): self.createUserDir(user)
-            self.__cliConnecteds[addr] = self.__usersFolder + user
-            print("Logado com sucesso, {0}!".format(user))
-
-            return True
-        else:
-            print("Senha ou login incorretos!")
-            
-            return False
+        db = Database()
+        aut = db.searchForUser(user)
+        del db
+        if not aut is None:
+            if aut[1] == user and aut[2] == password:
+                if not self.checkDirExist(user): self.createUserDir(user)
+                self.__cliConnecteds[addr] = self.__usersFolder + user
+                print("Usuario {0} logado com sucesso!".format(user))
+                welcomeMSG = "Bem vindo, {0}".format(user)
+                c_sck.send(welcomeMSG.encode())
+                return True
+            else:
+                #print("Senha ou login incorretos!")
+                c_sck.send("Senha ou login incorretos!".encode())
+        return False
 
     def h_client(self, c_sck, addr):
+        authenticated = False
         while True:
+            while not authenticated:
+                c_sck.send("digite seu usuario e senha, exemplo: jerome 12345\n:: ".encode())
+                answ = c_sck.recv(1024).decode()
+                answ = answ.split(" ")
+                if len(answ) > 1:
+                    authenticated = self.authentication(c_sck, addr, answ[0], answ[1])
             data = c_sck.recv(1024).decode()              
             if not data: break
             if data == "EXIT": 
