@@ -12,7 +12,7 @@ class Database:
         self.closeConn()
         del self.__path
         del self.__cursor
-        del self.__con        
+        del self.__con
         gc.collect()
 
     def openConn(self):
@@ -45,5 +45,3 @@ class Database:
         for linha in self.__cursor.fetchall():
             table.append(linha)
         return table
-
-    

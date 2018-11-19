@@ -13,7 +13,7 @@ class Client:
 
     def connectToServer(self):
         try:
-            self.__sck.connect(self.__dest)            
+            self.__sck.connect(self.__dest)
         except ConnectionRefusedError:
             print("Servidor offline!")
             return            
