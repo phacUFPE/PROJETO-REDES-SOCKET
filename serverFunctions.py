@@ -12,7 +12,8 @@ class Server:
         self.__sck = cfg.SOCKET_INFO
         self.__orig = (ip, port)
         self.__cliConnecteds = {}
-        self.__usersFolder = cfg.FOLDER_USERS   
+        self.__usersFolder = cfg.FOLDER_USERS
+        self.__commandsDict = cfg.COMMANDS_DICT
 
     def __del__(self):
         del self.__db
@@ -23,7 +24,7 @@ class Server:
         del self.__cliConnecteds
         gc.collect()
 
-    def prepareConnection(self):    
+    def prepareConnection(self):
         self.__sck.bind(self.__orig)
         self.__sck.listen(1)
 
@@ -31,7 +32,7 @@ class Server:
         return os.path.isdir(self.__usersFolder + str(user))
     
     def createUserDir(self, user):
-        if not os.path.isdir(self.__usersFolder): os.mkdir(self.__usersFolder)        
+        if not os.path.isdir(self.__usersFolder): os.mkdir(self.__usersFolder)
         os.mkdir(self.__usersFolder + str(user))
 
     def authentication(self, c_sck, addr, user, password):
@@ -48,20 +49,54 @@ class Server:
                 c_sck.send(welcomeMSG.encode())
                 return True
             else:
-                #print("Senha ou login incorretos!")
                 c_sck.send("Senha ou login incorretos!".encode())
         return False
+
+    def __GET(self, fServerPath, clientPath):
+        pass
+
+    def __POST(self, filePath, fServerPath):
+        pass
+
+    def __PUT(self, filePath, fServerPath):
+        pass
+
+    def __DELETE(self, fServerPath):
+        pass
+
+    def commands(self, string):
+        command = string.split(" ")[0]
+        arg0 = string.split(" ")[1]
+        arg1 = string.split(" ")[2]
+        if not command or command is None: print("Digite um comando com as especificações!") return
+        if not file or file is None: print("Digite o caminho do arquivo!") return        
+        if command in self.__commandsDict:
+            operation_number = self.__commandsDict[command]
+            if operation_number == 0:                
+                self.__GET(arg1, arg0)
+                #GET (PEGAR ARQUIVO)
+            elif operation_number == 1:
+                self.__POST(arg0, arg1)
+                #POST (COLOCAR ARQUIVO)
+            elif operation_number == 2:
+                self.__PUT(arg0, arg1)
+                #PUT (SUBSTITUIR ARQUIVO)
+            else:
+                self.__DELETE(arg0)
+                #DELETE (DELETAR ARQUIVO)
+        else:
+            print("Isso não é um comando!") return
 
     def h_client(self, c_sck, addr):
         authenticated = False
         while True:
             while not authenticated:
-                c_sck.send("digite seu usuario e senha, exemplo: jerome 12345\n:: ".encode())
+                c_sck.send("Digite seu usuario e senha\nExemplo: jerome 12345\n\n:: ".encode())
                 answ = c_sck.recv(1024).decode()
                 answ = answ.split(" ")
                 if len(answ) > 1:
                     authenticated = self.authentication(c_sck, addr, answ[0], answ[1])
-            data = c_sck.recv(1024).decode()              
+            data = c_sck.recv(1024).decode()
             if not data: break
             if data == "EXIT": 
                 break
@@ -72,12 +107,12 @@ class Server:
         c_sck.close()
 
     def openConnection(self):
-        print("Servidor Inicializado!!\n")        
+        print("Servidor Inicializado!!\n")
         while True:            
             con, addr = self.__sck.accept()
             self.__cliConnecteds[addr] = None
             print("Cliente {0} conectado!!".format(addr))
-            thrd.start_new_thread(self.h_client ,(con, addr))    
+            thrd.start_new_thread(self.h_client ,(con, addr))
         con.close()
 
     def getClientsConnected(self):
