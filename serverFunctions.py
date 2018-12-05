@@ -73,10 +73,12 @@ class Server:
         return base64.urlsafe_b64encode("".join(cript).encode()).decode()
 
     def GET(self, fServerPath, clientPath):
-        with open(fServerPath, "rb") as f:
-            fBytes = f.read(1024)
-            fBytes_Crypted = Server.__crypt(fBytes)
-        return fBytes_Crypted
+        f = open(fServerPath, "rb")
+        fBytes = f.read(1024)
+        #fBytes_Crypted = Server.__crypt(fBytes)
+        if fBytes == b'':
+            f.close()
+        return fBytes
 
     def POST(self, filePath, fServerPath):
         with open(filePath, "rb") as f:
@@ -87,29 +89,38 @@ class Server:
         pass
 
     def DELETE(self, fServerPath):
-        pass
+        os.remove(fServerPath)
 
     def LIST(self, path):
         return os.listdir(path)
 
     def commands(self, c_sck, string, dft_dir):
+        arg0 = None
+        arg1 = None
         command = string.split(" ")[0]
-        arg0 = string.split(" ")[1]
-        arg1 = string.split(" ")[2]
+        try:
+            arg0 = string.split(" ")[1]
+            arg1 = string.split(" ")[2]
+        except:
+            pass
         c_sck.send("{0} - {1} - {2}".format(command, arg0, arg1).encode())
         if not command or command is None: 
             c_sck.send("Digite um comando com as especifica��es!".encode()) 
             return
-        if not arg0 or arg0 is None: 
+        if not arg0 or arg0 and command != "LIST" is None: 
             c_sck.send("Digite o caminho do arquivo!".encode()) 
             return        
         if command in self.__commandsDict:
             operation_number = self.__commandsDict[command]
             if operation_number == 0:
                 f = " "
-                while f != "":
-                    f = self.GET(dft_dir+"/"+arg0, arg1)
-                    c_sck.send(f.encode())
+                arc = open(dft_dir+"/"+arg0, "rb")
+                while f != b'':
+                    f = arc.read(1024)
+                    print(f)
+                    c_sck.send(f)
+                arc.close()
+                c_sck.send("COMPLETO!".encode())                
                 #GET (PEGAR ARQUIVO)
             elif operation_number == 1:
                 self.POST(arg0, arg1)
@@ -118,9 +129,9 @@ class Server:
                 self.PUT(arg0, arg1)
                 #PUT (SUBSTITUIR ARQUIVO)
             elif operation_number == 3:
-                self.LIST(dft_dir+arg0)
+                c_sck.send(self.LIST(dft_dir+"/"+arg0))
             else:
-                self.DELETE(arg0)
+                self.DELETE(dft_dir+"/"+arg0)
                 #DELETE (DELETAR ARQUIVO)
         else:
             c_sck.send("Isso n�o � um comando!".encode())
