@@ -26,27 +26,21 @@ class Client:
         if not arg0 or arg0 is None:
             return
         if command == "GET":
-            print(arg1)
-            f = open(arg1, "wb")
-            msg = ""
-            while msg != "COMPLETO!":
-                #fBytes = Server.__decrypt(self.__sck.recv(1024))                                
-                msg = self.__sck.recv(1024)
-                print(msg)
-                if msg != "COMPLETO!":
-                    f.write(msg)
-                else:
-                    break
-            f.close()
-
+            print(self.__sck.recv(1024).decode())
+            msg = input()
+            self.__sck.send(msg.encode())  
         elif command == "POST":
-            pass
+            print(self.__sck.recv(1024).decode())
+            msg = input()
+            self.__sck.send(msg.encode())
         elif command == "PUT":
             pass
         elif command == "LIST":
-            pass
+            print(self.__sck.recv(1024).decode())
         elif command == "DELETE":
-            pass
+            print(self.__sck.recv(1024).decode())
+            msg = input()
+            self.__sck.send(msg.encode())
         else:
             return
         return
