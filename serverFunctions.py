@@ -17,7 +17,6 @@ class Server:
         self.__commandsDict = cfg.COMMANDS_DICT
 
     def __del__(self):
-        del self.__db
         del self.__ip
         del self.__port
         del self.__sck
@@ -40,15 +39,19 @@ class Server:
         user = str(user)
         db = Database()
         aut = db.searchForUser(user)
-        del db
-        if not aut is None:
-            if aut[1] == user and aut[2] == password:
-                if not self.checkDirExist(user): self.createUserDir(user)
-                self.__cliConnecteds[addr] = self.__usersFolder + user
-                print("Usuario {0} logado com sucesso!".format(user))            
-                return [True, user]
-            else:
-                return [False, False]
+        if aut is None:
+            db.addNewUser(user,password)
+            self.createUserDir(user)
+            self.__cliConnecteds[addr] = self.__usersFolder + user
+            print("Usuario {0} logado com sucesso!".format(user))            
+            return [True, user]
+        elif aut[1] == user and aut[2] == password:
+            if not self.checkDirExist(user): self.createUserDir(user)
+            self.__cliConnecteds[addr] = self.__usersFolder + user
+            print("Usuario {0} logado com sucesso!".format(user))            
+            return [True, user]
+        else:
+            return [False, False]
         return [False, None]
 
     @staticmethod
@@ -105,7 +108,7 @@ class Server:
             pass
         c_sck.send("{0} - {1} - {2}".format(command, arg0, arg1).encode())
         if not command or command is None: 
-            c_sck.send("Digite um comando com as especifica��es!".encode()) 
+            c_sck.send("Digite um comando com as especificações!".encode()) 
             return
         if not arg0 or arg0 and command != "LIST" is None: 
             c_sck.send("Digite o caminho do arquivo!".encode()) 
@@ -134,7 +137,7 @@ class Server:
                 self.DELETE(dft_dir+"/"+arg0)
                 #DELETE (DELETAR ARQUIVO)
         else:
-            c_sck.send("Isso n�o � um comando!".encode())
+            c_sck.send("Isso não é um comando!".encode())
             return
  
     def h_client(self, c_sck, addr):
@@ -150,8 +153,6 @@ class Server:
                     authenticated = self.authentication(c_sck, addr, answ[0], answ[1])
                     if authenticated[1] is False:
                         c_sck.send("Senha ou login incorretos!\n".encode())
-                    elif authenticated[1] is None:
-                        c_sck.send("Usuario inexistente!\n".encode())
                 try:
                     user = authenticated[1]
                 except:
