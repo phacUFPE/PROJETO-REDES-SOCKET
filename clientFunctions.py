@@ -1,5 +1,6 @@
 import config as cfg
 from serverFunctions import Server
+import os
 import gc
 
 class Client:
@@ -26,24 +27,39 @@ class Client:
         if not arg0 or arg0 is None:
             return
         if command == "GET":
-            print(self.__sck.recv(1024).decode())
+            self.__sck.send(string.encode())
+            #resp = self.__sck.recv(1024)
+            resp = b""
+            arc = open(arg0, "wb")
+            while resp != b"Arquivo Transferido!":                
+                resp = self.__sck.recv(1024)
+                if resp != b"Arquivo Transferido!":
+                    arc.write(resp)
+            arc.close()
             msg = input()
             self.__sck.send(msg.encode())  
         elif command == "POST":
-            print(self.__sck.recv(1024).decode())
+            self.__sck.send(string.encode())
+            arc = open(arg0, "rb")
+            fBytes = b"1"
+            while fBytes != b"":
+                fBytes = arc.read(1024)
+                self.__sck.send(fBytes)
+            arc.close()
             msg = input()
             self.__sck.send(msg.encode())
         elif command == "PUT":
             pass
         elif command == "LIST":
+            self.__sck.send(command)
             print(self.__sck.recv(1024).decode())
         elif command == "DELETE":
+            self.__sck.send(command)
             print(self.__sck.recv(1024).decode())
             msg = input()
             self.__sck.send(msg.encode())
         else:
             return
-        return
 
     def connectToServer(self):
         try:
@@ -57,9 +73,10 @@ class Client:
             msg = input(":: ")            
             while msg != "EXIT":                
                 self.__sck.send(msg.encode())
-                print(self.__sck.recv(1024).decode())
+                fromsrv = self.__sck.recv(1024).decode()
+                print("SERVER DIZ: " + fromsrv)
                 msg = input(":: ")
-                self.client_commands(msg)
+                self.client_commands(msg)        
             if msg == "EXIT":
                 self.__sck.send(msg.encode())
         except ConnectionResetError:

@@ -76,18 +76,25 @@ class Server:
             cript.append(cript_c)
         return base64.urlsafe_b64encode("".join(cript).encode()).decode()
 
-    def GET(self, path, user):
-        copyfile(self.__usersFolder + path, self.__usersFolder + str(user) + "/"+ "CÓPIA.TXT") ## Não pode salvar como cópia.txt, tem que ter uma maneira única de salvar cada cópia. 
-        return "Arquivo copiado com sucesso"
+    def GET(self, c_sck, arc):
+        fBytes = b"1"
+        #c_sck.send(os.path.basename(arc.name).encode())
+        while fBytes != b"":   
+            fBytes = arc.read(1024)
+            c_sck.send(fBytes)
+            print("Enviando...")
+        arc.close()
+        c_sck.send("Arquivo Transferido!".encode())
+        #copyfile(self.__usersFolder + path, self.__usersFolder + str(user) + "/"+ "CÓPIA.TXT") ## Não pode salvar como cópia.txt, tem que ter uma maneira única de salvar cada cópia. 
+        #return "Arquivo copiado com sucesso"
         
 
-    def POST(self, user, name):
-        arq = os.open(self.__usersFolder + str(user) + "/" + str(name), os.O_RDWR|os.O_CREAT)
-        os.close(arq)
-        return str(name) + " foi criado!"
-
-    def PUT(self, filePath, fServerPath):
-        pass
+    def POST(self, c_sck, arc):
+        arc = open()
+        c_sck.recv(1024)
+        #arq = os.open(self.__usersFolder + str(user) + "/" + str(name), os.O_RDWR|os.O_CREAT)
+        #os.close(arq)
+        #return str(name) + " foi criado!"
 
     def DELETE(self, user, name):
         os.remove((self.__usersFolder + str(user) + "/"+ str(name)))
@@ -98,21 +105,29 @@ class Server:
         return "Arquivos e diretórios presentes no seu diretório" + str(diretorios)
 
     def commands(self, c_sck, string, user, dft_dir):
+        cmd = string.split(" ")[0]
+        if cmd != "DELETE" and cmd != "LIST":
+            arg0 = None
+            try:
+                arg0 = string.split(" ")[1]
+            except:
+                pass
         if string == "LIST":
             result = self.LIST(user)
             c_sck.send(result.encode())
+            pass
         elif string == "PUT":
             pass
-        elif string == "GET":
-            c_sck.send("DIGITE O CAMINHO DO ARQUIVO QUE VOCÊ QUER COPIAR: EXEMPLO /NOME DO DONO DO ARQUIVO/NOME DO ARQUIVO ".encode())
-            path = c_sck.recv(1024).decode()
-            result = self.GET(path, user)
-            c_sck.send(result.encode())    
+        elif cmd == "GET":
+            #c_sck.send("DIGITE O NOME DO ARQUIVO QUE VOCÊ QUER COPIAR ".encode())
+            #path = c_sck.recv(1024).decode()
+            arc = open(dft_dir + "/" + arg0, "rb")
+            self.GET(c_sck, arc)  
         elif string == "POST":
             c_sck.send("DIGITE O NOME DO ARQUIVO QUE VOCÊ QUER CRIAR ".encode())
             name = c_sck.recv(1024).decode()
-            result = self.POST(user,name)
-            c_sck.send(result.encode())
+            #result = self.POST(user,name)
+            #c_sck.send(result.encode())
         elif string == "DELETE":
             c_sck.send("DIGITE O NOME DO ARQUIVO QUE VOCÊ QUER DELETAR".encode())
             name = c_sck.recv(1024).decode()
@@ -150,11 +165,11 @@ class Server:
             \n DELETE\n            
             """.encode())
             data = c_sck.recv(1024).decode()
+            print("Cliente: {0} - Login: {1}\nMensagem: {2}".format(addr, user, data))
             self.commands(c_sck, data, user, self.__cliConnecteds[addr])
             if not data: break
             if data == "EXIT": 
-                break
-            print("Cliente: {0} - Login: {1}\nMensagem: {2}".format(addr, user, data))
+                break            
         print("Finalizando conexao do Cliente {0}".format(addr))
         self.__cliConnecteds.pop(addr)
         c_sck.close()
